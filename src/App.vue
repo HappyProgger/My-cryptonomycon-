@@ -11,7 +11,7 @@
                 >Тикер</label
               >
               <div class="mt-1 relative rounded-md shadow-md">
-                <input
+                <input 
                   v-model = "tickName"
                   type="text"
                   name="wallet"
@@ -69,7 +69,7 @@
         <button
         v-if="pageCurent < getPageCount()"
             type="button"
-            @click ="pageCurent = pageCurent+1; this.console.log(this.pageCurent)"  
+            @click ="pageCurent = pageCurent+1"  
             class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               Вперед
@@ -98,6 +98,7 @@
                   class="bg-white overflow-hidden shadow rounded-lg border-purple-800  border-solid cursor-pointer"
                   @click.stop="sel = tick; this.graph = []"
                   @ticker-delete="deleteCurentTicker"
+                  @graph-hide = "this.sel = ''"
                   :tickName="tick.tickName" 
                   :price="tick.priceTicker"
                   >
@@ -112,7 +113,7 @@
         <section v-if="sel"   class="relative">
         
           <div>
-            <ticker-graph :graph = "[...this.graph]"   :sel="sel" @graph-hide="this.sel = ''"></ticker-graph>
+            <ticker-graph :graph = "[...this.graph]"   :sel="sel" @graph-hide="this.sel = ''; "></ticker-graph>
           </div>
         </section>
       </div>
@@ -124,7 +125,8 @@
 <script>
 import tickerAdd from '@/components/tickerAdd.vue';
 import tickerGraph from '@/components/tickerGraph.vue';
-// import dataExchange from './components/api.js'
+
+import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
 
 // import { get } from 'https';
 
@@ -132,6 +134,7 @@ import tickerGraph from '@/components/tickerGraph.vue';
 
 export default{
   components : {tickerAdd, tickerGraph},
+
   data(){
     return{
 
@@ -152,20 +155,22 @@ export default{
     // setInterval(
    
     const data = await fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true");
+    // const data = dataExchange;
     localStorage.setItem("coins", Object.keys((await data.json()).Data) )
-    // console.log(localStorage.coins.split(","))
+    // localStorage.setItem("coins", Object.keys((await data.json()).Data) )
+    console.log(localStorage.coins.split(","))
     this.listOfCoins = localStorage.coins.split(",")
     
 
     
-    console.log("dddddddddddddddddddddddddddddddddddddddddddddd")
+
     this.tickers = JSON.parse(localStorage.getItem("addTickers"))
     console.log(this.tickers)
-
-    this.tickers.forEach(ticker =>  { this.updateInfoTickers(ticker)
-    this.getPageCount();
+ 
+    // this.tickers.forEach(ticker =>  { this.updateInfoTickers(ticker)
+    // this.getPageCount();
     
-    })
+    // })
   
 
     const params = Object.fromEntries(new URL(window.location).searchParams.entries())
@@ -192,114 +197,146 @@ export default{
         tickName: this.tickName,
         priceTicker : "-",
       }
+     
+      // WS_subscribe(newTicker.tickName);
 
       if ( !this.tickers){ 
       this.tickers = []
       }
+      console.log('123123213123123',this.tickers)
 
       this.tickers.push(newTicker)
-      console.log(this.tickers)
+
+    subscribeOnTicker(this.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice))
+      
+
+
   
 
       localStorage.setItem("addTickers", JSON.stringify(this.tickers))
 
-      try{
-      setInterval(async () => {
-        const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${newTicker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
+      // try{
+      // setInterval(async () => {
+      //   // const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${newTicker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
 
-        const data1 = await res.json();
-        // console.log(dataExchange)
-        // const data1 = dataExchange;
-        let data = data1.USD
-        newTicker.curentPrice = data;
+      //   // const data1 = await res.json();
+      //   let data_curency = '-';
+      //   // const data1 = { USD : 1};    //remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+      //   subscribeOnTicker(this.tickName, (newprice)=>{data_curency = newprice})
+      //   // console.log(dataExchange)
+      //   let data = data_curency
+
+ 
         
 
         
 
+ 
+      //   data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
 
-        data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
-        this.tickers.find(t => t.tickName  === newTicker.tickName).priceTicker = data;
-        // console.log(newTicker.curentPrice )
-        
+      //   // console.log(this.sel)
 
-        // console.log(this.sel)
+      //   if (this.sel.tickName === newTicker.tickName){
+      //     if ( this.graph.length === 10){
+      //       this.graph.shift();
 
-        if (this.sel.tickName === newTicker.tickName){
-          if ( this.graph.length === 10){
-            this.graph.shift();
+      //     }
+      //     this.graph.push(data)
+      //     // console.log(this.graph)
 
-          }
-          this.graph.push(data)
-          // console.log(this.graph)
-
-        }
-      }, 6000)
+      //   }
+      // }, 6000)
 
 
-      // console.log(this.sel)
-      this.pageCount = this.getPageCount()
-      this.tickName = ""
-      this.masOfSearch = []
-      } catch(e){
-        return
-      }
+      // // console.log(this.sel)
+      // this.pageCount = this.getPageCount()
+      // this.tickName = ""
+      // this.masOfSearch = []
+      // } catch(e){
+      //   return
+      // }
       
       
 
       
       }
-
+      this.tickName = '';
     },
     // filter(){
     //   return this.ticckers.includes(this.)
-    // },dat
+    // },
 
-    
-
-    updateInfoTickers(ticker){
-      setInterval(async () => {
-        const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
-
-        const data1 = await res.json();
-        let data = data1.USD
-        ticker.curentPrice = data;
-        
-
-
-
-
-        data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
-        this.tickers.find(t => t.tickName  === ticker.tickName).priceTicker = data;
-        // console.log(newTicker.curentPrice )
-        
-
-        // console.log(this.sel)
-
-        if (this.sel.tickName === ticker.tickName){
-          if ( this.graph.length === 10){
-            this.graph.shift();
-
-          }
-          this.graph.push(data)
-          // console.log(this.graph)
-
-        }
-      }, 6000)
+    updateInfoTickers(updatingTicker, changed_price){
+      console.log(this.$refs.tickerGraph)
+      console.log("Updating coin ", updatingTicker)
+      this.tickers.filter(t => t.tickName === updatingTicker  ).priceTicker = changed_price;
+      
+      console.log( this.tickers.filter(t => (t.tickName === updatingTicker)).forEach(t => t.priceTicker = changed_price ))
+      if (this.sel.tickName === updatingTicker){
+        this.graph.push(changed_price);
+      }
+  
 
     },
+
+    // updateInfoTickers(ticker){ 
+    //   setInterval(async () => {
+    //     // const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
+
+    //     // const data1 = await res.json();
+        
+    //     // let data = dataExchange;
+    //     // let data = data1.USD
+
+
+
+
+    //     let data = 1                                      //remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //     console.log(data)
+    //     ticker.curentPrice = data;
+
+
+
+
+    //     data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
+    //     this.tickers.find(t => t.tickName  === ticker.tickName).priceTicker = data;
+    //     // console.log(newTicker.curentPrice )
+        
+
+    //     // console.log(this.sel)
+
+    //     if (this.sel.tickName === ticker.tickName){
+    //       if ( this.graph.length === 10){
+    //         this.graph.shift();
+
+    //       }
+    //       this.graph.push(data)
+    //       // console.log(this.graph)
+
+    //     }
+    //   }, 6000)
+
+    // },
 
   
     deleteCurentTicker(tickName1){
       
+
       this.tickers = this.tickers.filter((tick) => tickName1 != tick.tickName );
       localStorage.setItem("addTickers", JSON.stringify(this.tickers));
       this.sel = null;
       this.pageCount = this.getPageCount()
-
+      unsubscribeOnTicker(tickName1);
       if ((this.tickers.length % this.countTickersOnPage === 0)  &&  (this.pageCurent != 1)){
         this.pageCurent = this.pageCurent -1;
         console.log(this.pageCurent)
       }
+      unsubscribeOnTicker(tickName1);
+
+      
+
+
       // console.log(this.sel.tickName)
     },
 

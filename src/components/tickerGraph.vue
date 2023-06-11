@@ -1,4 +1,5 @@
 <template>
+// 40 ширина столбца
 
           <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
             {{ sel.tickName }} - USD
@@ -10,7 +11,7 @@
               
               
               :style="{ height : `${bar}%` }"        
-              class="bg-purple-800 border w-10 h-24">
+              class="bg-purple-800 border w-10 h-24" ref = "graph">
             
 
             </div>
@@ -65,7 +66,8 @@ export default
       
         return{ 
           mutable_graph : [],
-
+          // ref_column_graph :this.$refs.graph,
+          ref_column_graph :1234,
 
         }
     },
@@ -77,6 +79,7 @@ export default
         this.mutable_graph = this.graph.map(graph1 => (5 + ((graph1 - min) *95/(max-min))).toFixed(0))
         
       }
+
     },
     watch :{
       graph(){
