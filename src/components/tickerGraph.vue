@@ -4,14 +4,14 @@
           <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
             {{ sel.tickName }} - USD
           </h3><div>
-          <div class="flex items-end border-gray-600 border-b border-l h-64">
+          <div class="flex items-end border-gray-600 border-b border-l h-64" id="graph">
 
             <div
               v-for="(bar,idx) in this.mutable_graph" :key="idx"
               
               
               :style="{ height : `${bar}%` }"        
-              class="bg-purple-800 border w-10 h-24" ref = "graph">
+              class="column_of_graph bg-purple-800 border w-10 h-24" ref = "graph">
             
 
             </div>
@@ -85,7 +85,11 @@ export default
       graph(){
         this.normolizeGraph();
         console.log(this.mutable_graph)
-      }
+
+
+        
+      },
+
     }
 
 }

@@ -125,6 +125,7 @@
 <script>
 import tickerAdd from '@/components/tickerAdd.vue';
 import tickerGraph from '@/components/tickerGraph.vue';
+import {nextTick } from 'vue';
 
 import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
 
@@ -137,6 +138,8 @@ export default{
 
   data(){
     return{
+      count_column_of_graph : 1,
+
 
       curentPrice : "-",
       tickName : "",
@@ -154,6 +157,7 @@ export default{
   async created(){
     // setInterval(
    
+
     const data = await fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true");
     // const data = dataExchange;
     localStorage.setItem("coins", Object.keys((await data.json()).Data) )
@@ -186,19 +190,20 @@ export default{
     
     // console.log(localStorage["addTickers"])
 
+    
   },
   methods :{
 
     add(){
       
-      // console.log(Array.from(this.tickers).slice(0,1))
+ 
       if (this.tickName){
         const newTicker = {
         tickName: this.tickName,
         priceTicker : "-",
       }
      
-      // WS_subscribe(newTicker.tickName);
+
 
       if ( !this.tickers){ 
       this.tickers = []
@@ -208,67 +213,63 @@ export default{
       this.tickers.push(newTicker)
 
     subscribeOnTicker(this.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice))
+    // subscribeOnTicker(this.tickName, () => this.updateInfoTickers(fromsymbol,newprice))
       
 
 
   
 
       localStorage.setItem("addTickers", JSON.stringify(this.tickers))
-
-      // try{
-      // setInterval(async () => {
-      //   // const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${newTicker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
-
-      //   // const data1 = await res.json();
-      //   let data_curency = '-';
-      //   // const data1 = { USD : 1};    //remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-
-      //   subscribeOnTicker(this.tickName, (newprice)=>{data_curency = newprice})
-      //   // console.log(dataExchange)
-      //   let data = data_curency
-
- 
-        
-
-        
-
- 
-      //   data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
-
-      //   // console.log(this.sel)
-
-      //   if (this.sel.tickName === newTicker.tickName){
-      //     if ( this.graph.length === 10){
-      //       this.graph.shift();
-
-      //     }
-      //     this.graph.push(data)
-      //     // console.log(this.graph)
-
-      //   }
-      // }, 6000)
-
-
-      // // console.log(this.sel)
-      // this.pageCount = this.getPageCount()
-      // this.tickName = ""
-      // this.masOfSearch = []
-      // } catch(e){
-      //   return
-      // }
-      
-      
-
       
       }
       this.tickName = '';
     },
-    // filter(){
-    //   return this.ticckers.includes(this.)
-    // },
+    async return_graph_column_width(){
+      if(!document.querySelector(".column_of_graph")){
+        return 
+      }
+      console.log("Ширина колонки графа", document.querySelector(".column_of_graph").clientWidth)
+        return(document.querySelector(".column_of_graph").clientWidth)
+      },
+    async return_graph_width(){
+      await nextTick() 
+      console.log("Ширина  графа", document.querySelector("#graph").clientWidth)
+      return(document.querySelector("#graph").clientWidth)
+    },
+
+    async return_count_column_of_graph(){
+      const columnW = await this.return_graph_column_width();
+      const graphW = await this.return_graph_width();
+      this.count_column_of_graph = Math.floor(graphW/columnW)
+
+      console.log("количество колонок на странице",this.count_column_of_graph)
+    },
+
+    control_graph_column(){
+      
+      try{
+        
+        this.return_count_column_of_graph();
+        console.log(this.count_column_of_graph)
+        if(this.graph.length >= this.count_column_of_graph){
+          console.log("Resize!!!!!1")
+          while(this.graph.length >= this.count_column_of_graph){
+              this.graph.shift()
+          }
+        }
+        
+      }catch{
+        console.log("Error")
+      }
+    },
+    
+
+    
+
+
 
     updateInfoTickers(updatingTicker, changed_price){
-      console.log(this.$refs.tickerGraph)
+      this.control_graph_column();
       console.log("Updating coin ", updatingTicker)
       this.tickers.filter(t => t.tickName === updatingTicker  ).priceTicker = changed_price;
       
@@ -276,49 +277,13 @@ export default{
       if (this.sel.tickName === updatingTicker){
         this.graph.push(changed_price);
       }
-  
-
+        
+      this.return_count_column_of_graph();  
+      
+      
     },
 
-    // updateInfoTickers(ticker){ 
-    //   setInterval(async () => {
-    //     // const res = await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker.tickName}&tsyms=USD&api_key={80cb5da39e733176c0c0c2e8aa8dc6c5e18c7165ff0067659d144d1114acfd11}`)
-
-    //     // const data1 = await res.json();
-        
-    //     // let data = dataExchange;
-    //     // let data = data1.USD
-
-
-
-
-    //     let data = 1                                      //remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //     console.log(data)
-    //     ticker.curentPrice = data;
-
-
-
-
-    //     data > 1 ? data = data.toFixed(2) : data =  data.toFixed(6);
-    //     this.tickers.find(t => t.tickName  === ticker.tickName).priceTicker = data;
-    //     // console.log(newTicker.curentPrice )
-        
-
-    //     // console.log(this.sel)
-
-    //     if (this.sel.tickName === ticker.tickName){
-    //       if ( this.graph.length === 10){
-    //         this.graph.shift();
-
-    //       }
-    //       this.graph.push(data)
-    //       // console.log(this.graph)
-
-    //     }
-    //   }, 6000)
-
-    // },
-
+   
   
     deleteCurentTicker(tickName1){
       
@@ -337,13 +302,13 @@ export default{
       
 
 
-      // console.log(this.sel.tickName)
+
     },
 
     isOne(){
       if (this.tickers){
         for (let i=0;i< this.tickers.length; i++ ){
-          // console.log(this.tickers[i])
+
           if( this.tickName.toLowerCase() === this.tickers[i].tickName.toLowerCase()){
             return true
             }
@@ -353,17 +318,6 @@ export default{
     return false
 
     },
-    // isOne(){
-
-    //     for (let i=0;i< this.tickers.length; i++ ){
-    //       // console.log(this.tickers[i])
-    //       if( this.tickName.toLowerCase() === this.tickers[i].tickName.toLowerCase()){
-    //         return true
-    //         }
-    //       }
-    //     return false
-
-    // },
 
     getPageCount(){
       if (this.tickers){
@@ -391,16 +345,30 @@ export default{
           break
         }
       }
-      // console.log(this.masOfSearch)
       
     }
-
-
-
-
-
-  
   },
+
+
+
+
+    mounted() {
+    window.addEventListener('resize', this.control_graph_column)
+   
+    // window.addEventListener('resize', ()=> console.log('resize!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1') );  
+    
+
+  },
+  unmounted() {
+    window.EventListener('resize', this.control_graph_column)
+   
+    // window.addEventListener('resize', ()=> console.log('resize!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1') );  
+    
+
+  },
+  
+  
+
   computed :{
     filteredTickers(){
       let start = (this.pageCurent-1) * this.countTickersOnPage
@@ -413,11 +381,19 @@ export default{
   },
 
 
+
   watch :{
+    
+
       tickName(){
-        // console.log("111111111111111111111")
         this.findMaches();
 
+      },
+      graph(){
+        console.log("Изменился массив графа!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // this.return_graph_width();
+        
+        
       },
 
       filterValue(){
