@@ -9,45 +9,60 @@ const URL_API=`wss://streamer.cryptocompare.com/v2${api_key}`;
 const WS = new WebSocket(URL_API);
 
 const TYPE_SUCCES_TRANSITION_TO_USD = "5";
-// const TYPE_FAILE_TRANSITION_TO_USD = "500";
-
+const TYPE_FAILED_TICK = "500";
+const MESSAGE_INDVALID_SUB = "INVALID_SUB";
 const tickersHandlers = new Map();
 
 
 
-
-
+//MESSAGE:"INVALID_SUB"
+//{"TYPE":"500","MESSAGE":"SUBSCRIPTION_UNRECOGNIZED","PARAMETER":
+//   "5~CCCAGG~fs~USD","INFO":"You are not receiving updates on this subscription."}
 WS.addEventListener("message", (event) => {
     let message_data = event.data;
-    const { 'TYPE': type, 'FROMSYMBOL': fromsymbol,'TOSYMBOL' : curency, 'PRICE': newprice } = JSON.parse(event.data);
-
-    // if (type != TYPE_SUCCES_TRANSITION_TO_USD){
-
+    console.log(message_data)
+    const { 'TYPE': type,'MESSAGE': message, 'FROMSYMBOL': fromsymbol,'TOSYMBOL' : curency, 'PRICE': newprice ,'PARAMETER' : parameter} = JSON.parse(event.data);
 
 
-    if (type != TYPE_SUCCES_TRANSITION_TO_USD || newprice === undefined ){
+    if (type === TYPE_FAILED_TICK && message === MESSAGE_INDVALID_SUB ){
+        
+
+        console.log("Неправильный тикер ")
+        const name_of_failed_ticker = parameter.split('~')[2]
+    
+        const handlers = tickersHandlers.get(name_of_failed_ticker) ?? [];
+        // handlers.forEach(fn => fn(name_of_failed_ticker))
+        handlers[0](name_of_failed_ticker)    
+        console.log(handlers[0])
+            
+        return
+
+        }
+
+
+    if (type != TYPE_SUCCES_TRANSITION_TO_USD ){
        console.log(type,TYPE_SUCCES_TRANSITION_TO_USD)
         return
-        
+   
     }
-    // let message_data = JSON.parse(event.data);
-    // if (message_data.TYPE === '5'){
-    //     return 123
-    // }    
-    // const message = {} = JSON.parse(event.data)
+    
+    if (type === TYPE_SUCCES_TRANSITION_TO_USD && newprice ){
+        console.log(type,TYPE_SUCCES_TRANSITION_TO_USD)
+      
+    
+    
 
     console.log("Message from server ",  message_data)  
 
     console.log(curency)  
 
     const handlers = tickersHandlers.get(fromsymbol) ?? [];
+    console.log(handlers[1])
+    handlers[1](fromsymbol, newprice)      
+
+    // handlers.forEach(fn => fn(fromsymbol, newprice))
     
-    // console.log("Message_to_par", handlers)
-    handlers.forEach(fn => fn(fromsymbol, newprice))
-    // if (WS.readyState != WS_open){
-    //     let WS = new WebSocket(URL_API);x
-    //     return
-    // let 
+    }
     
 });
 

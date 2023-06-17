@@ -77,7 +77,7 @@
       
 
           <!-- <hr v-if="`${tikers ? tickers.length}` "   class="w-full border-t border-gray-600 my-4" /> -->
-          <input
+          <input  
 
                   @change="this.pageCurent = 1"
                   v-model = "filterValue"
@@ -90,10 +90,10 @@
           <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <!-- <div v-for="tick in tickers.slice((this.pageCurent - 1)*4 , this.pageCurent*4)" -->
           <div v-for="tick in this.filteredTickers"
-              
+                
                 :key="tick.tickName" >
                 <ticker-add 
-                  
+                  :isReached="tick.isReached" 
                   :class="{'border-4' : this.sel === tick}"
                   class="bg-white overflow-hidden shadow rounded-lg border-purple-800  border-solid cursor-pointer"
                   @click.stop="sel = tick; this.graph = []"
@@ -113,7 +113,7 @@
         <section v-if="sel"   class="relative">
         
           <div>
-            <ticker-graph :graph = "[...this.graph]"   :sel="sel" @graph-hide="this.sel = ''; "></ticker-graph>
+            <ticker-graph :graph = "[...this.graph]"  :sel="sel" @graph-hide="this.sel = ''; "></ticker-graph>
           </div>
         </section>
       </div>
@@ -125,6 +125,7 @@
 <script>
 import tickerAdd from '@/components/tickerAdd.vue';
 import tickerGraph from '@/components/tickerGraph.vue';
+
 import {nextTick } from 'vue';
 
 import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
@@ -134,12 +135,11 @@ import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
 
 
 export default{
-  components : {tickerAdd, tickerGraph},
+  components : { tickerGraph, tickerAdd},
 
   data(){
     return{
       count_column_of_graph : 1,
-
 
       curentPrice : "-",
       tickName : "",
@@ -185,7 +185,7 @@ export default{
 
     if (params.page){
       this.pageCurent = params.page;
-    }
+    } 
     
     
     // console.log(localStorage["addTickers"])
@@ -196,13 +196,15 @@ export default{
 
     add(){
       
- 
+      
       if (this.tickName){
         const newTicker = {
         tickName: this.tickName,
         priceTicker : "-",
+        isReached : true,
+
       }
-     
+      this.sel = newTicker;
 
 
       if ( !this.tickers){ 
@@ -211,19 +213,32 @@ export default{
       console.log('123123213123123',this.tickers)
 
       this.tickers.push(newTicker)
-
+    subscribeOnTicker(this.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) )
     subscribeOnTicker(this.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice))
-    // subscribeOnTicker(this.tickName, () => this.updateInfoTickers(fromsymbol,newprice))
-      
+   
 
+
+    
+      
+//console.log(name_of_failed_ticker, "нет в списке!!!!!!!!!!!!!")
 
   
 
       localStorage.setItem("addTickers", JSON.stringify(this.tickers))
       
       }
-      this.tickName = '';
+   
     },
+    change_color_of_ticker(name_of_failed_ticker){
+      console.log("Цвет поменялся")
+      console.log("Тикер для замены",name_of_failed_ticker)
+      // this.tickers.filter(t => t.tickName === name_of_failed_ticker  ).isReached = false;
+      console.log( this.tickers.filter(t => (t.tickName === name_of_failed_ticker)).forEach(t => t.isReached = false ))
+      console.log(this.tickers)
+      console.log(this.tickers.filter(t => console.log(t)))
+    },
+
+
     async return_graph_column_width(){
       if(!document.querySelector(".column_of_graph")){
         return 
@@ -269,6 +284,7 @@ export default{
 
 
     updateInfoTickers(updatingTicker, changed_price){
+      
       this.control_graph_column();
       console.log("Updating coin ", updatingTicker)
       this.tickers.filter(t => t.tickName === updatingTicker  ).priceTicker = changed_price;
@@ -277,7 +293,8 @@ export default{
       if (this.sel.tickName === updatingTicker){
         this.graph.push(changed_price);
       }
-        
+      
+
       this.return_count_column_of_graph();  
       
       

@@ -2,8 +2,9 @@
      <div 
               
             >
-              <div class="px-4 py-5 sm:p-6 text-center">
-                <dt class="text-sm font-medium text-gray-500 truncate">
+              <div class="Ticker px-4 py-5 sm:p-6 text-center" :style="isReached ?  { 'background': 'green' , 'opacity': '0.8'} : { 'background': 'red' , 'opacity': '0.8  '} "
+>
+              <dt class="text-sm font-medium text-gray-500 truncate ">
                  {{ tickName }} - USD
                 </dt>
                 <dd class="mt-1 text-3xl font-semibold text-gray-900">
@@ -40,14 +41,17 @@
 
 
 <script>
+
 export default{
 
 
 
   props :{
+    isReached: Boolean,
     tickName : String,
     price : String,
     sel : String,
+
   },
 
   data(){
@@ -61,6 +65,14 @@ export default{
     // tickerDelete(){
     //   this.$emit('ticker-delete')
     // }
+    // console(){
+    //   this.console.log(this.isReached)
+    // }
+  },
+  mounted() {
+
+    // this.console
+  
   }
 }
 

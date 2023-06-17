@@ -67,7 +67,7 @@ export default
         return{ 
           mutable_graph : [],
           // ref_column_graph :this.$refs.graph,
-          ref_column_graph :1234,
+          
 
         }
     },
