@@ -144,7 +144,7 @@ export default{
       curentPrice : "-",
       tickName : "",
       filterValue : "",
-      tickers : null,
+      tickers : [],
       graph : [],
       sel : "",
       listOfCoins : [],
@@ -161,6 +161,8 @@ export default{
     const data = await fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true");
     // const data = dataExchange;
     localStorage.setItem("coins", Object.keys((await data.json()).Data) )
+    // localStorage.setItem("tickers", Object.keys((await data.json()).Data) )
+  
     // localStorage.setItem("coins", Object.keys((await data.json()).Data) )
     console.log(localStorage.coins.split(","))
     this.listOfCoins = localStorage.coins.split(",")
@@ -260,7 +262,28 @@ export default{
       console.log("количество колонок на странице",this.count_column_of_graph)
     },
 
-    control_graph_column(){
+    get_info_about_ticker_after_refreshing_page(object_of_tickers){
+              
+      
+    if(object_of_tickers != {} ){
+      object_of_tickers.forEach(t =>  {
+        this.tickers.push(t);
+          subscribeOnTicker(t.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) );
+          subscribeOnTicker(t.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice));
+
+        }) 
+     }
+
+
+         // if(JSON.parse(localStorage.getItem('addTickers')) != {} ){
+    //   JSON.parse(localStorage.getItem('addTickers')).forEach(t=>(t.tickName,this.tickers,name_of_failed_ticker) => {
+    //     this.tickers.push(t.tickName)
+    //       subscribeOnTicker(t.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) )
+    //       subscribeOnTicker(this.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice))
+
+    //   })
+    },
+      control_graph_column(){
       
       try{
         
@@ -371,11 +394,35 @@ export default{
 
     mounted() {
     window.addEventListener('resize', this.control_graph_column)
-   
-    // window.addEventListener('resize', ()=> console.log('resize!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1') );  
-    
+    this.get_info_about_ticker_after_refreshing_page(JSON.parse(localStorage.getItem('addTickers')))
+    // console.log(typeof(JSON.parse(localStorage.getItem('addTickers'))))
+    // console.log(JSON.parse(localStorage.getItem('addTickers')).forEach(t=>console.log(t.tickName))  )
 
-  },
+
+
+
+    // if(JSON.parse(localStorage.getItem('addTickers')) != {} ){
+    //   JSON.parse(localStorage.getItem('addTickers')).forEach(t=>(t.tickName,this.tickers,name_of_failed_ticker) => {
+    //     this.tickers.push(t.tickName)
+    //       subscribeOnTicker(t.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) )
+    //       subscribeOnTicker(this.tickName, (fromsymbol, newprice) => this.updateInfoTickers(fromsymbol,newprice))
+
+    //   })
+
+
+
+
+
+
+
+      // this.tickers.forEach(t =>subscribeOnTicker(t.tickName) )
+      // this.tickers.forEach(t =>subscribeOnTicker(t.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) ) )
+  // }subscribeOnTicker(this.tickName, (name_of_failed_ticker) => this.change_color_of_ticker(name_of_failed_ticker) )
+    
+    // window.addEventListener('resize', ()=> console.log('resize!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1') );  
+    // }
+  }
+  ,
   unmounted() {
     window.EventListener('resize', this.control_graph_column)
    
