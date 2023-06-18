@@ -1,5 +1,5 @@
 <template>
-// 40 ширина столбца
+
 
           <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
             {{ sel.tickName }} - USD

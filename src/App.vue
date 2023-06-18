@@ -2,8 +2,19 @@
 
 
   <body>
+    
     <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
       <div class="container">
+        <modalWindow v-if="is_show_modal_window_delete_ticker"
+          @modal-window-ticker-delete-hide = modal_window_ticker_delete_hide
+          :ticker_name = this.ticker_for_modal_window
+          :code = this.code
+          @delete_curent_ticker_modal_window = deleteCurentTicker
+          >
+            <template #item="" >
+              <p>Для того чтобы удалить тикер, введите код {{ code }} в строке! </p>
+            </template>
+        </modalWindow>
         <section>
           <div class="flex">
             <div class="max-w-xs">
@@ -43,6 +54,7 @@
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
+       
             <svg
               class="-ml-0.5 mr-2 h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
@@ -97,7 +109,7 @@
                   :class="{'border-4' : this.sel === tick}"
                   class="bg-white overflow-hidden shadow rounded-lg border-purple-800  border-solid cursor-pointer"
                   @click.stop="sel = tick; this.graph = []"
-                  @ticker-delete="deleteCurentTicker"
+                  @ticker-delete="open_modal_windnow_delete"
                   @graph-hide = "this.sel = ''"
                   :tickName="tick.tickName" 
                   :price="tick.priceTicker"
@@ -125,6 +137,8 @@
 <script>
 import tickerAdd from '@/components/tickerAdd.vue';
 import tickerGraph from '@/components/tickerGraph.vue';
+import modalWindow from '@/components/modalWindow.vue';
+
 
 import {nextTick } from 'vue';
 
@@ -135,10 +149,15 @@ import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
 
 
 export default{
-  components : { tickerGraph, tickerAdd},
+  components : { tickerGraph, tickerAdd, modalWindow},
 
   data(){
     return{
+      // ticker_for_modal_window : "",
+      is_show_modal_window_delete_ticker : false,
+      code : '',
+
+
       count_column_of_graph : 1,
 
       curentPrice : "-",
@@ -230,6 +249,14 @@ export default{
       
       }
    
+    },
+    modal_window_ticker_delete_hide(){
+      
+      console.log('fsfsdsf\nfsfsdsf\nfsfsdsf\nfsfsdsf\nfsfsdsf\nfsfsdsf\n')
+      this.is_show_modal_window_delete_ticker = false;
+      
+      
+
     },
     change_color_of_ticker(name_of_failed_ticker){
       console.log("Цвет поменялся")
@@ -324,10 +351,15 @@ export default{
     },
 
    
-  
+    open_modal_windnow_delete(ticker_for_modal_window){
+      this.code = String(Math.floor((Math.random()*1000000)+1));
+      this.is_show_modal_window_delete_ticker = true
+      this.ticker_for_modal_window = ticker_for_modal_window
+      
+    },
     deleteCurentTicker(tickName1){
       
-
+      
       this.tickers = this.tickers.filter((tick) => tickName1 != tick.tickName );
       localStorage.setItem("addTickers", JSON.stringify(this.tickers));
       this.sel = null;
@@ -341,7 +373,7 @@ export default{
 
       
 
-
+      this.modal_window_ticker_delete_hide();
 
     },
 
