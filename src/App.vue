@@ -6,6 +6,15 @@
       <div class="container">
         <section>
           <div class="flex">
+            <modal-window  v-if = is_open_modal_window @close=close_modal_window >
+              <template #actions>
+                  <p>
+                    Вы точно хотите удалить монету?
+                  </p>   
+                  <input type="text" v-model=confrim_text_modal_window placeholder="Напишите 'ПОДТВЕРЖАЮ'">
+                  <button @click=deleteCurentTicker(this.name_ticker_for_delete) :disabled=is_disable_button_modal_window  type="button" text="" >Удалить</button>
+              </template> 
+            </modal-window>
             <div class="max-w-xs">
               <label for="wallet" class="block text-sm font-medium text-gray-700"
                 >Тикер</label
@@ -97,7 +106,7 @@
                   :class="{'border-4' : this.sel === tick}"
                   class="bg-white overflow-hidden shadow rounded-lg border-purple-800  border-solid cursor-pointer"
                   @click.stop="sel = tick; this.graph = []"
-                  @ticker-delete="deleteCurentTicker"
+                  @ticker-delete="show_modal_window"
                   @graph-hide = "this.sel = ''"
                   :tickName="tick.tickName" 
                   :price="tick.priceTicker"
@@ -125,6 +134,7 @@
 <script>
 import tickerAdd from '@/components/tickerAdd.vue';
 import tickerGraph from '@/components/tickerGraph.vue';
+import modalWindow from '@/components/modalWindow.vue';
 
 import {nextTick } from 'vue';
 
@@ -135,12 +145,16 @@ import {subscribeOnTicker, unsubscribeOnTicker } from './components/api.js'
 
 
 export default{
-  components : { tickerGraph, tickerAdd},
+  components : { tickerGraph, tickerAdd, modalWindow},
 
   data(){
     return{
       count_column_of_graph : 1,
+      confrim_text_modal_window : '',
+      name_ticker_for_delete : "",
 
+      is_open_modal_window : false,
+      
       curentPrice : "-",
       tickName : "",
       filterValue : "",
@@ -195,7 +209,13 @@ export default{
     
   },
   methods :{
-
+    show_modal_window(ticker){
+      this.is_open_modal_window = true;
+      this.name_ticker_for_delete = ticker
+    },
+    close_modal_window(){
+      this.is_open_modal_window = false;
+    },
     add(){
       
       
@@ -326,8 +346,9 @@ export default{
    
   
     deleteCurentTicker(tickName1){
-      
-
+      this.confrim_text_modal_window = '';
+      this.is_open_modal_window = false;
+      this.is
       this.tickers = this.tickers.filter((tick) => tickName1 != tick.tickName );
       localStorage.setItem("addTickers", JSON.stringify(this.tickers));
       this.sel = null;
@@ -431,9 +452,12 @@ export default{
 
   },
   
-  
 
+  CONFIRMED_TEXT : "ПОДТВЕРЖДАЮ",
   computed :{
+    is_disable_button_modal_window(){
+      return this.$options.CONFIRMED_TEXT != this.confrim_text_modal_window;
+    },
     filteredTickers(){
       let start = (this.pageCurent-1) * this.countTickersOnPage
       let end = (this.pageCurent) * this.countTickersOnPage
